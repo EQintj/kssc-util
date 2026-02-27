@@ -1,0 +1,460 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+
+:root {
+    --bg-color: #0d0d12;
+    --card-bg: rgba(255, 255, 255, 0.05);
+    --primary-neon: #39ff14;
+    --secondary-neon: #00f2ff;
+    --accent-neon: #ff0055;
+    --red-team: #ff4d4d;
+    --blue-team: #4d94ff;
+    --gold: #ffd700;
+    --silver: #c0c0c0;
+    --bronze: #cd7f32;
+    --text-main: #ffffff;
+    --text-muted: #a0a0b8;
+    --border-color: rgba(255, 255, 255, 0.1);
+    --glass-blur: blur(16px);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Outfit', sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-image:
+        radial-gradient(circle at 20% 30%, rgba(57, 255, 20, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(0, 242, 255, 0.05) 0%, transparent 40%);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, var(--primary-neon), var(--secondary-neon));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 15px rgba(57, 255, 20, 0.4));
+    transition: all 0.5s ease;
+}
+
+h1:hover {
+    filter: drop-shadow(0 0 25px rgba(57, 255, 20, 0.6));
+    transform: translateY(-2px);
+}
+
+p.subtitle {
+    color: var(--text-muted);
+    letter-spacing: 2px;
+}
+
+/* Glass Card */
+.glass-card {
+    background: var(--card-bg);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 2.5rem;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    animation: fadeIn 0.8s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Form Styles */
+.setup-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+label {
+    display: block;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+input,
+select {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1rem;
+    color: white;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+input:focus,
+select:focus {
+    outline: none;
+    border-color: var(--primary-neon);
+    box-shadow: 0 0 15px rgba(57, 255, 20, 0.1);
+}
+
+.btn-group {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.btn {
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    border: none;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    flex: 1;
+}
+
+.btn-primary {
+    background: var(--primary-neon);
+    color: #000;
+}
+
+.btn-primary:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 25px rgba(57, 255, 20, 0.4);
+}
+
+.btn-secondary {
+    background: transparent;
+    border: 1px solid var(--primary-neon);
+    color: var(--primary-neon);
+}
+
+.btn-secondary:hover {
+    background: rgba(57, 255, 20, 0.1);
+}
+
+/* Match/League Options */
+.option-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.option-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.option-card.active {
+    border-color: var(--primary-neon);
+    background: rgba(57, 255, 20, 0.05);
+    box-shadow: 0 0 20px rgba(57, 255, 20, 0.1);
+}
+
+.hidden {
+    display: none;
+}
+
+/* Table Styles */
+.standings-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 2rem;
+}
+
+.standings-table th {
+    text-align: left;
+    color: var(--text-muted);
+    font-weight: 600;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.standings-table td {
+    padding: 1.2rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.team-row:last-child td {
+    border: none;
+}
+
+.rank-text.rank-1 {
+    color: var(--gold);
+    transform: scale(1.1);
+    font-weight: 800;
+}
+
+.rank-text.rank-2 {
+    color: var(--silver);
+}
+
+.rank-text.rank-3 {
+    color: var(--bronze);
+}
+
+.gd-positive {
+    color: var(--primary-neon);
+}
+
+.gd-negative {
+    color: var(--accent-neon);
+}
+
+/* Dashboard One-Page View */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+}
+
+@media (min-width: 1024px) {
+    .dashboard-grid.one-page {
+        grid-template-columns: 1.2fr 1fr;
+        gap: 3rem;
+    }
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid var(--primary-neon);
+    padding-left: 1rem;
+}
+
+.section-header h3 {
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+/* Tournament Bracket UI Redesign */
+.bracket-container {
+    display: flex;
+    justify-content: center;
+    padding: 3rem 0;
+    gap: 4rem;
+    min-height: 500px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 20px;
+}
+
+.bracket-round {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    position: relative;
+    gap: 2rem;
+}
+
+.bracket-match {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    width: 200px;
+    position: relative;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+.bracket-match::after {
+    content: '';
+    position: absolute;
+    right: -2rem;
+    top: 50%;
+    width: 2rem;
+    height: 2px;
+    background: var(--border-color);
+}
+
+.bracket-round:last-child .bracket-match::after {
+    display: none;
+}
+
+.bracket-match:hover {
+    border-color: var(--secondary-neon);
+    transform: scale(1.03);
+    z-index: 10;
+}
+
+.bracket-team {
+    padding: 0.8rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.bracket-team:last-child {
+    border: none;
+}
+
+.bracket-team.winner {
+    color: var(--primary-neon);
+    font-weight: 700;
+}
+
+.bracket-score {
+    font-weight: 700;
+    color: var(--secondary-neon);
+}
+
+/* Hidden elements */
+.hidden {
+    display: none !important;
+}
+
+/* Control Group */
+.control-header {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+/* Team Color Toggles */
+.color-toggle {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 5px;
+}
+
+.color-btn {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #333;
+}
+
+.color-btn.red {
+    background: var(--red-team);
+}
+
+.color-btn.blue {
+    background: var(--blue-team);
+}
+
+.color-btn.none {
+    background: #555;
+}
+
+.color-btn.active {
+    border-color: white;
+    transform: scale(1.2);
+    box-shadow: 0 0 10px currentColor;
+}
+
+.team-info.is-red .team-name {
+    color: var(--red-team);
+    text-shadow: 0 0 10px rgba(255, 77, 77, 0.4);
+}
+
+.team-info.is-blue .team-name {
+    color: var(--blue-team);
+    text-shadow: 0 0 10px rgba(77, 148, 255, 0.4);
+}
+
+/* Match Cards */
+.match-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.match-card {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 16px;
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+}
+
+.match-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+}
+
+.match-teams {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.team-info {
+    flex: 1;
+    text-align: center;
+}
+
+.team-name {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.vs-badge {
+    padding: 0.3rem 0.8rem;
+    background: var(--accent-neon);
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: white;
+}
+
+.score-input {
+    width: 60px;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    padding: 0.5rem;
+}

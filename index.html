@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LASER TAG - Championship Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>LASER TAG</h1>
+            <p class="subtitle">TOURNAMENT & LEAGUE TRACKER</p>
+        </header>
+
+        <!-- Setup Screen -->
+        <main id="setup-screen" class="glass-card">
+            <div class="setup-grid">
+                <!-- Group Info -->
+                <div class="setup-section">
+                    <label>경기 정보</label>
+                    <div class="form-group">
+                        <select id="grade-select">
+                            <option value="">학년 선택</option>
+                            <option value="1학년">1학년</option>
+                            <option value="2학년">2학년</option>
+                            <option value="3학년">3학년</option>
+                            <option value="direct">직접 입력</option>
+                        </select>
+                        <input type="text" id="grade-direct" class="hidden" placeholder="학년 직접 입력">
+                    </div>
+                    <div class="form-group">
+                        <select id="class-select">
+                            <option value="">조/반 선택</option>
+                            <option value="1반">1반</option>
+                            <option value="2반">2반</option>
+                            <option value="3반">3반</option>
+                            <option value="direct">직접 입력</option>
+                        </select>
+                        <input type="text" id="class-direct" class="hidden" placeholder="반 직접 입력">
+                    </div>
+                </div>
+
+                <!-- Competition Config -->
+                <div class="setup-section">
+                    <label>대회 방식</label>
+                    <div class="option-cards">
+                        <div class="option-card active" data-type="league">
+                            <h3>리그전</h3>
+                            <p>라운드로빈</p>
+                        </div>
+                        <div class="option-card" data-type="tournament">
+                            <h3>토너먼트</h3>
+                            <p>토너먼트</p>
+                        </div>
+                    </div>
+
+                    <label>경기 횟수</label>
+                    <div class="option-cards">
+                        <div class="option-card active" data-matches="1">
+                            <h3>1경기</h3>
+                            <p>단판제</p>
+                        </div>
+                        <div class="option-card" data-matches="2">
+                            <h3>2경기</h3>
+                            <p>홈 & 어웨이</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Teams -->
+                <div class="setup-section" style="grid-column: span 1;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <label style="margin: 0;">팀 리스트</label>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <input type="text" id="name-suffix" placeholder="접미사(ex: 조)"
+                                style="width: 100px; padding: 0.4rem; font-size: 0.8rem; border-radius: 8px;">
+                            <button id="autofill-btn" class="btn btn-secondary"
+                                style="padding: 0.4rem 0.8rem; font-size: 0.7rem; white-space: nowrap;">자동완성</button>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <input type="number" id="team-count" min="2" max="20" value="4">
+                    </div>
+                    <div id="team-names-container">
+                        <!-- Dynamic team name inputs -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <button id="start-btn" class="btn btn-primary">새 대회 시작</button>
+                <button id="resume-btn" class="btn btn-secondary hidden">대회로 돌아가기</button>
+            </div>
+        </main>
+
+        <!-- Dashboard Screen -->
+        <main id="dashboard-screen" class="hidden">
+            <div class="glass-card">
+                <div class="control-header">
+                    <h2 id="dashboard-title">대회 진행 현황</h2>
+                    <div style="flex: 1;"></div>
+                    <button id="toggle-view-btn" class="btn btn-secondary" style="flex: 0; white-space: nowrap;">한눈에
+                        보기</button>
+                    <button id="back-btn" class="btn btn-secondary" style="flex: 0; white-space: nowrap;">설정 수정</button>
+                    <button id="reset-btn" class="btn btn-secondary" style="flex: 0; padding: 0.5rem 1rem;">전체
+                        초기화</button>
+                </div>
+
+                <div id="dashboard-content" class="dashboard-grid">
+                    <!-- Toggleable Grid Layout -->
+
+                    <section id="match-section">
+                        <div class="section-header">
+                            <h3>경기 일정 및 결과 입력</h3>
+                        </div>
+                        <div id="match-list" class="match-grid">
+                            <!-- Matches -->
+                        </div>
+                        <div id="bracket-view" class="bracket-container hidden">
+                            <!-- Tournament Bracket -->
+                        </div>
+                    </section>
+
+                    <section id="standings-section">
+                        <div class="section-header">
+                            <h3>실시간 정밀 순위표</h3>
+                        </div>
+                        <table class="standings-table">
+                            <thead>
+                                <tr>
+                                    <th>순위</th>
+                                    <th>팀명</th>
+                                    <th>경기</th>
+                                    <th>승/무/패</th>
+                                    <th>득/실</th>
+                                    <th>득실차</th>
+                                    <th>승점</th>
+                                </tr>
+                            </thead>
+                            <tbody id="standings-body">
+                                <!-- Standings -->
+                            </tbody>
+                        </table>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
