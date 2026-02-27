@@ -5,8 +5,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let config = {
         type: 'league',
         matchCount: 1,
-        grade: '',
-        class: '',
         tournamentStage: 0
     };
 
@@ -83,19 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Grade/Class Direct Input Toggle
-    ['grade', 'class'].forEach(type => {
-        const select = document.getElementById(`${type}-select`);
-        const direct = document.getElementById(`${type}-direct`);
-        select.addEventListener('change', () => {
-            if (select.value === 'direct') {
-                direct.classList.remove('hidden');
-            } else {
-                direct.classList.add('hidden');
-            }
-        });
-    });
-
     // Round Robin Algorithm
     function generateRoundRobin(teamList) {
         let schedule = [];
@@ -111,9 +96,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 const team2 = tempTeams[tempTeams.length - 1 - m];
 
                 if (team1 && team2) {
-                    schedule.push({ team1, team2, score1: null, score2: null, id: schedule.length });
+                    schedule.push({
+                        team1, team2,
+                        score1: null, score2: null,
+                        id: schedule.length,
+                        round: r
+                    });
                     if (config.matchCount === 2) {
-                        schedule.push({ team1: team2, team2: team1, score1: null, score2: null, id: schedule.length });
+                        schedule.push({
+                            team1: team2, team2: team1,
+                            score1: null, score2: null,
+                            id: schedule.length,
+                            round: r
+                        });
                     }
                 }
             }
@@ -146,11 +141,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 score1: team2.isBye ? 1 : null,
                 score2: team2.isBye ? 0 : null,
                 id: schedule.length,
-                stage: '16강/8강/4강 등', // Will refine
+                round: 0,
                 isCompleted: team2.isBye
             };
             schedule.push(match);
         }
+        config.tournamentStage = 0;
         return schedule;
     }
 
@@ -164,15 +160,11 @@ document.addEventListener('DOMContentLoaded', () => {
             played: 0,
             won: 0,
             drawn: 0,
-            lost: 0
+            lost: 0,
+            sf: 0, sa: 0, gd: 0
         }));
 
-        const gradeSelect = document.getElementById('grade-select');
-        const classSelect = document.getElementById('class-select');
-        config.grade = gradeSelect.value === 'direct' ? document.getElementById('grade-direct').value : gradeSelect.value;
-        config.class = classSelect.value === 'direct' ? document.getElementById('class-direct').value : classSelect.value;
-
-        const titleText = `${config.grade} ${config.class} - ${config.type === 'league' ? '리그전' : '토너먼트'}`;
+        const titleText = `${config.type === 'league' ? '리그전' : '토너먼트'} - 경기 현황`;
         document.getElementById('dashboard-title').textContent = titleText;
 
         if (config.type === 'league') {
@@ -196,18 +188,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     resumeBtn.addEventListener('click', () => {
-        // Update names and config without regenerating matches
         const nameInputs = document.querySelectorAll('.team-name-input');
         nameInputs.forEach((input, i) => {
             if (teams[i]) teams[i].name = input.value || `Team ${i + 1}`;
         });
 
-        const gradeSelect = document.getElementById('grade-select');
-        const classSelect = document.getElementById('class-select');
-        config.grade = gradeSelect.value === 'direct' ? document.getElementById('grade-direct').value : gradeSelect.value;
-        config.class = classSelect.value === 'direct' ? document.getElementById('class-direct').value : classSelect.value;
-
-        const titleText = `${config.grade} ${config.class} - ${config.type === 'league' ? '리그전' : '토너먼트'}`;
+        const titleText = `${config.type === 'league' ? '리그전' : '토너먼트'} - 경기 현황`;
         document.getElementById('dashboard-title').textContent = titleText;
 
         setupScreen.classList.add('hidden');
@@ -219,40 +205,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderBracket() {
         bracketView.innerHTML = '';
-        const roundsCount = Math.ceil(Math.log2(teams.length));
 
-        // Simplified Horizontal Bracket Column
-        const roundDiv = document.createElement('div');
-        roundDiv.className = 'bracket-round';
+        // Group matches by round for bracket display
+        const maxRound = Math.max(...matches.map(m => m.round));
 
-        matches.filter(m => !m.isNextStage).forEach(match => {
-            const card = document.createElement('div');
-            card.className = 'bracket-match';
-            card.innerHTML = `
-                <div class="bracket-team ${match.score1 !== null && match.score1 > match.score2 ? 'winner' : ''} ${match.color1 || ''}">
-                    <span>${match.team1 ? match.team1.name : 'TBD'}</span>
-                    <input type="number" class="score-input bracket-score" style="width: 40px; padding: 2px;"
-                        data-match-id="${match.id}" data-team="1" value="${match.score1 !== null ? match.score1 : ''}">
-                    <div class="color-toggle">
-                        <div class="color-btn red ${match.color1 === 'is-red' ? 'active' : ''}" data-match-id="${match.id}" data-team="1" data-color="is-red"></div>
-                        <div class="color-btn blue ${match.color1 === 'is-blue' ? 'active' : ''}" data-match-id="${match.id}" data-team="1" data-color="is-blue"></div>
-                        <div class="color-btn none ${!match.color1 ? 'active' : ''}" data-match-id="${match.id}" data-team="1" data-color=""></div>
+        for (let r = 0; r <= maxRound; r++) {
+            const roundDiv = document.createElement('div');
+            roundDiv.className = 'bracket-round';
+
+            const roundMatches = matches.filter(m => m.round === r);
+            roundMatches.forEach(match => {
+                const card = document.createElement('div');
+                card.className = 'bracket-match';
+                card.innerHTML = `
+                    <div class="bracket-team ${match.score1 !== null && match.score1 > match.score2 ? 'winner' : ''} ${match.color1 || ''}">
+                        <span>${match.team1 ? match.team1.name : 'TBD'}</span>
+                        <input type="number" class="score-input bracket-score" style="width: 40px; padding: 2px;"
+                            data-match-id="${match.id}" data-team="1" value="${match.score1 !== null ? match.score1 : ''}">
+                        <div class="color-toggle">
+                            <div class="color-btn red ${match.color1 === 'is-red' ? 'active' : ''}" data-match-id="${match.id}" data-team="1" data-color="is-red"></div>
+                            <div class="color-btn blue ${match.color1 === 'is-blue' ? 'active' : ''}" data-match-id="${match.id}" data-team="1" data-color="is-blue"></div>
+                            <div class="color-btn none ${!match.color1 ? 'active' : ''}" data-match-id="${match.id}" data-team="1" data-color=""></div>
+                        </div>
                     </div>
-                </div>
-                <div class="bracket-team ${match.score2 !== null && match.score2 > match.score1 ? 'winner' : ''} ${match.color2 || ''}">
-                    <span>${match.team2 ? match.team2.name : 'TBD'}</span>
-                    <input type="number" class="score-input bracket-score" style="width: 40px; padding: 2px;"
-                        data-match-id="${match.id}" data-team="2" value="${match.score2 !== null ? match.score2 : ''}">
-                    <div class="color-toggle">
-                        <div class="color-btn red ${match.color2 === 'is-red' ? 'active' : ''}" data-match-id="${match.id}" data-team="2" data-color="is-red"></div>
-                        <div class="color-btn blue ${match.color2 === 'is-blue' ? 'active' : ''}" data-match-id="${match.id}" data-team="2" data-color="is-blue"></div>
-                        <div class="color-btn none ${!match.color2 ? 'active' : ''}" data-match-id="${match.id}" data-team="2" data-color=""></div>
+                    <div class="bracket-team ${match.score2 !== null && match.score2 > match.score1 ? 'winner' : ''} ${match.color2 || ''}">
+                        <span>${match.team2 ? match.team2.name : 'TBD'}</span>
+                        <input type="number" class="score-input bracket-score" style="width: 40px; padding: 2px;"
+                            data-match-id="${match.id}" data-team="2" value="${match.score2 !== null ? match.score2 : ''}">
+                        <div class="color-toggle">
+                            <div class="color-btn red ${match.color2 === 'is-red' ? 'active' : ''}" data-match-id="${match.id}" data-team="2" data-color="is-red"></div>
+                            <div class="color-btn blue ${match.color2 === 'is-blue' ? 'active' : ''}" data-match-id="${match.id}" data-team="2" data-color="is-blue"></div>
+                            <div class="color-btn none ${!match.color2 ? 'active' : ''}" data-match-id="${match.id}" data-team="2" data-color=""></div>
+                        </div>
                     </div>
-                </div>
-            `;
-            roundDiv.appendChild(card);
-        });
-        bracketView.appendChild(roundDiv);
+                `;
+                roundDiv.appendChild(card);
+            });
+            bracketView.appendChild(roundDiv);
+        }
 
         // Add event listeners to bracket inputs
         bracketView.querySelectorAll('.score-input').forEach(input => {
@@ -261,22 +251,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 const team = e.target.dataset.team;
                 const val = e.target.value === '' ? null : parseInt(e.target.value);
 
-                if (team === '1') matches[matchId].score1 = val;
-                else matches[matchId].score2 = val;
+                const matchIndex = matches.findIndex(m => m.id === matchId);
+                if (team === '1') matches[matchIndex].score1 = val;
+                else matches[matchIndex].score2 = val;
 
                 checkTournamentProgress();
             });
         });
 
-        // Add event listeners to bracket color buttons
+        // Color toggles for bracket
         bracketView.querySelectorAll('.color-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const matchId = parseInt(e.target.dataset.matchId);
                 const team = e.target.dataset.team;
                 const color = e.target.dataset.color;
 
-                if (team === '1') matches[matchId].color1 = color;
-                else matches[matchId].color2 = color;
+                const matchIndex = matches.findIndex(m => m.id === matchId);
+                if (team === '1') matches[matchIndex].color1 = color;
+                else matches[matchIndex].color2 = color;
 
                 renderBracket();
             });
@@ -289,7 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const card = document.createElement('div');
             card.className = 'match-card';
             card.innerHTML = `
-                <div class="match-header">MATCH #${match.id + 1}</div>
+                <div class="match-header">MATCH #${match.id + 1} (라운드 ${match.round + 1})</div>
                 <div class="match-teams">
                     <div class="team-info ${match.color1 || ''}">
                         <span class="team-name">${match.team1.name}</span>
@@ -321,8 +313,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const team = e.target.dataset.team;
                 const val = e.target.value === '' ? null : parseInt(e.target.value);
 
-                if (team === '1') matches[matchId].score1 = val;
-                else matches[matchId].score2 = val;
+                const matchIndex = matches.findIndex(m => m.id === matchId);
+                if (team === '1') matches[matchIndex].score1 = val;
+                else matches[matchIndex].score2 = val;
 
                 if (config.type === 'league') {
                     updateStandings();
@@ -332,15 +325,16 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // Add event listeners for team color toggles
+        // Color toggles for matches
         matchList.querySelectorAll('.color-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const matchId = parseInt(e.target.dataset.matchId);
                 const team = e.target.dataset.team;
                 const color = e.target.dataset.color;
 
-                if (team === '1') matches[matchId].color1 = color;
-                else matches[matchId].color2 = color;
+                const matchIndex = matches.findIndex(m => m.id === matchId);
+                if (team === '1') matches[matchIndex].color1 = color;
+                else matches[matchIndex].color2 = color;
 
                 renderMatches();
             });
@@ -348,13 +342,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function checkTournamentProgress() {
-        const currentMatches = matches.filter(m => !m.isNextStage);
-        const allFinished = currentMatches.every(m => m.score1 !== null && m.score2 !== null);
+        // Only check matches for the CURRENT round
+        const currentRoundMatches = matches.filter(m => m.round === config.tournamentStage);
+        const allFinished = currentRoundMatches.every(m => m.score1 !== null && m.score2 !== null);
 
         if (allFinished) {
-            const winners = currentMatches.map(m => m.score1 > m.score2 ? m.team1 : m.team2);
+            const winners = currentRoundMatches.map(m => m.score1 > m.score2 ? m.team1 : m.team2);
             if (winners.length > 1) {
                 if (confirm('다음 라운드 진학하시겠습니까?')) {
+                    config.tournamentStage++;
                     const nextMatches = [];
                     for (let i = 0; i < winners.length; i += 2) {
                         nextMatches.push({
@@ -363,27 +359,25 @@ document.addEventListener('DOMContentLoaded', () => {
                             score1: null,
                             score2: null,
                             id: matches.length + nextMatches.length,
-                            isNextStage: true
+                            round: config.tournamentStage
                         });
                     }
                     matches = [...matches, ...nextMatches];
                     renderMatches();
                     if (config.type === 'tournament') renderBracket();
                 }
-            } else {
-                alert(`우승: ${winners[0].name}!`);
+            } else if (winners.length === 1) {
+                alert(`축하합니다! 우승팀: ${winners[0].name}`);
             }
         }
     }
 
     function updateStandings() {
-        // Reset Stats
         teams.forEach(t => {
             t.points = 0; t.played = 0; t.won = 0; t.drawn = 0; t.lost = 0;
             t.sf = 0; t.sa = 0; t.gd = 0;
         });
 
-        // Calc
         matches.forEach(m => {
             if (m.score1 !== null && m.score2 !== null) {
                 m.team1.played++; m.team2.played++;
@@ -405,12 +399,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         teams.forEach(t => t.gd = t.sf - t.sa);
 
-        // Sort: Pts > GD > SF
         const sortedTeams = [...teams].sort((a, b) =>
             b.points - a.points || b.gd - a.gd || b.sf - a.sf
         );
 
-        // Render
         standingsBody.innerHTML = '';
         sortedTeams.forEach((t, i) => {
             const tr = document.createElement('tr');
