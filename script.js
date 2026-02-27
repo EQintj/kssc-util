@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function generateRoundRobin(teamList) {
         let schedule = [];
         let tempTeams = [...teamList];
-        if (tempTeams.length % 2 !== 0) tempTeams.push(null); // Bye team
+        if (tempTeams.length % 2 !== 0) tempTeams.push({ id: -1, name: '부전승', isBye: true });
 
         const rounds = tempTeams.length - 1;
         const matchesPerRound = tempTeams.length / 2;
@@ -98,14 +98,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (team1 && team2) {
                     schedule.push({
                         team1, team2,
-                        score1: null, score2: null,
+                        score1: (team1.isBye || team2.isBye) ? 0 : null,
+                        score2: (team1.isBye || team2.isBye) ? 0 : null,
                         id: schedule.length,
                         round: r
                     });
                     if (config.matchCount === 2) {
                         schedule.push({
                             team1: team2, team2: team1,
-                            score1: null, score2: null,
+                            score1: (team1.isBye || team2.isBye) ? 0 : null,
+                            score2: (team1.isBye || team2.isBye) ? 0 : null,
                             id: schedule.length,
                             round: r
                         });
@@ -123,13 +125,11 @@ document.addEventListener('DOMContentLoaded', () => {
         let schedule = [];
         let tempTeams = [...teamList];
 
-        // Ensure power of 2
         const nextPowerOf2 = Math.pow(2, Math.ceil(Math.log2(tempTeams.length)));
         while (tempTeams.length < nextPowerOf2) {
             tempTeams.push({ id: -1, name: '부전승', isBye: true });
         }
 
-        // Shuffle teams for fairness
         tempTeams.sort(() => Math.random() - 0.5);
 
         for (let i = 0; i < tempTeams.length; i += 2) {
@@ -138,11 +138,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const match = {
                 team1, team2,
-                score1: team2.isBye ? 1 : null,
-                score2: team2.isBye ? 0 : null,
+                score1: team2.isBye ? 1 : (team1.isBye ? 0 : null),
+                score2: team2.isBye ? 0 : (team1.isBye ? 1 : null),
                 id: schedule.length,
-                round: 0,
-                isCompleted: team2.isBye
+                round: 0
             };
             schedule.push(match);
         }
@@ -205,8 +204,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderBracket() {
         bracketView.innerHTML = '';
-
-        // Group matches by round for bracket display
         const maxRound = Math.max(...matches.map(m => m.round));
 
         for (let r = 0; r <= maxRound; r++) {
@@ -221,7 +218,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="bracket-team ${match.score1 !== null && match.score1 > match.score2 ? 'winner' : ''} ${match.color1 || ''}">
                         <span>${match.team1 ? match.team1.name : 'TBD'}</span>
                         <input type="number" class="score-input bracket-score" style="width: 40px; padding: 2px;"
-                            data-match-id="${match.id}" data-team="1" value="${match.score1 !== null ? match.score1 : ''}">
+                            data-match-id="${match.id}" data-team="1" value="${match.score1 !== null ? match.score1 : ''}" 
+                            ${(match.team1?.isBye || match.team2?.isBye) ? 'disabled' : ''}>
                         <div class="color-toggle">
                             <div class="color-btn red ${match.color1 === 'is-red' ? 'active' : ''}" data-match-id="${match.id}" data-team="1" data-color="is-red"></div>
                             <div class="color-btn blue ${match.color1 === 'is-blue' ? 'active' : ''}" data-match-id="${match.id}" data-team="1" data-color="is-blue"></div>
@@ -231,7 +229,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="bracket-team ${match.score2 !== null && match.score2 > match.score1 ? 'winner' : ''} ${match.color2 || ''}">
                         <span>${match.team2 ? match.team2.name : 'TBD'}</span>
                         <input type="number" class="score-input bracket-score" style="width: 40px; padding: 2px;"
-                            data-match-id="${match.id}" data-team="2" value="${match.score2 !== null ? match.score2 : ''}">
+                            data-match-id="${match.id}" data-team="2" value="${match.score2 !== null ? match.score2 : ''}" 
+                            ${(match.team1?.isBye || match.team2?.isBye) ? 'disabled' : ''}>
                         <div class="color-toggle">
                             <div class="color-btn red ${match.color2 === 'is-red' ? 'active' : ''}" data-match-id="${match.id}" data-team="2" data-color="is-red"></div>
                             <div class="color-btn blue ${match.color2 === 'is-blue' ? 'active' : ''}" data-match-id="${match.id}" data-team="2" data-color="is-blue"></div>
@@ -244,32 +243,26 @@ document.addEventListener('DOMContentLoaded', () => {
             bracketView.appendChild(roundDiv);
         }
 
-        // Add event listeners to bracket inputs
         bracketView.querySelectorAll('.score-input').forEach(input => {
             input.addEventListener('input', (e) => {
                 const matchId = parseInt(e.target.dataset.matchId);
                 const team = e.target.dataset.team;
                 const val = e.target.value === '' ? null : parseInt(e.target.value);
-
                 const matchIndex = matches.findIndex(m => m.id === matchId);
                 if (team === '1') matches[matchIndex].score1 = val;
                 else matches[matchIndex].score2 = val;
-
                 checkTournamentProgress();
             });
         });
 
-        // Color toggles for bracket
         bracketView.querySelectorAll('.color-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const matchId = parseInt(e.target.dataset.matchId);
                 const team = e.target.dataset.team;
                 const color = e.target.dataset.color;
-
                 const matchIndex = matches.findIndex(m => m.id === matchId);
                 if (team === '1') matches[matchIndex].color1 = color;
                 else matches[matchIndex].color2 = color;
-
                 renderBracket();
             });
         });
@@ -278,13 +271,15 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderMatches() {
         matchList.innerHTML = '';
         matches.forEach(match => {
+            if (match.team1?.isBye || match.team2?.isBye) return; // Skip bye matches in list view
+
             const card = document.createElement('div');
             card.className = 'match-card';
             card.innerHTML = `
                 <div class="match-header">MATCH #${match.id + 1} (라운드 ${match.round + 1})</div>
                 <div class="match-teams">
                     <div class="team-info ${match.color1 || ''}">
-                        <span class="team-name">${match.team1.name}</span>
+                        <span class="team-name">${match.team1?.name || 'TBD'}</span>
                         <input type="number" class="score-input" data-match-id="${match.id}" data-team="1" value="${match.score1 !== null ? match.score1 : ''}" placeholder="0">
                         <div class="color-toggle">
                             <div class="color-btn red ${match.color1 === 'is-red' ? 'active' : ''}" data-match-id="${match.id}" data-team="1" data-color="is-red"></div>
@@ -294,7 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <div class="vs-badge">VS</div>
                     <div class="team-info ${match.color2 || ''}">
-                        <span class="team-name">${match.team2.name}</span>
+                        <span class="team-name">${match.team2?.name || 'TBD'}</span>
                         <input type="number" class="score-input" data-match-id="${match.id}" data-team="2" value="${match.score2 !== null ? match.score2 : ''}" placeholder="0">
                         <div class="color-toggle">
                             <div class="color-btn red ${match.color2 === 'is-red' ? 'active' : ''}" data-match-id="${match.id}" data-team="2" data-color="is-red"></div>
@@ -312,42 +307,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 const matchId = parseInt(e.target.dataset.matchId);
                 const team = e.target.dataset.team;
                 const val = e.target.value === '' ? null : parseInt(e.target.value);
-
                 const matchIndex = matches.findIndex(m => m.id === matchId);
                 if (team === '1') matches[matchIndex].score1 = val;
                 else matches[matchIndex].score2 = val;
 
-                if (config.type === 'league') {
-                    updateStandings();
-                } else {
-                    checkTournamentProgress();
-                }
+                if (config.type === 'league') updateStandings();
+                else checkTournamentProgress();
             });
         });
 
-        // Color toggles for matches
         matchList.querySelectorAll('.color-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const matchId = parseInt(e.target.dataset.matchId);
                 const team = e.target.dataset.team;
                 const color = e.target.dataset.color;
-
                 const matchIndex = matches.findIndex(m => m.id === matchId);
                 if (team === '1') matches[matchIndex].color1 = color;
                 else matches[matchIndex].color2 = color;
-
                 renderMatches();
             });
         });
     }
 
     function checkTournamentProgress() {
-        // Only check matches for the CURRENT round
         const currentRoundMatches = matches.filter(m => m.round === config.tournamentStage);
         const allFinished = currentRoundMatches.every(m => m.score1 !== null && m.score2 !== null);
 
         if (allFinished) {
-            const winners = currentRoundMatches.map(m => m.score1 > m.score2 ? m.team1 : m.team2);
+            const winners = currentRoundMatches.map(m => {
+                if (m.score1 > m.score2) return m.team1;
+                if (m.score2 > m.score1) return m.team2;
+                return m.team1; // Default
+            });
+
             if (winners.length > 1) {
                 if (confirm('다음 라운드 진학하시겠습니까?')) {
                     config.tournamentStage++;
@@ -355,9 +347,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     for (let i = 0; i < winners.length; i += 2) {
                         nextMatches.push({
                             team1: winners[i],
-                            team2: winners[i + 1],
-                            score1: null,
-                            score2: null,
+                            team2: winners[i + 1] || { id: -1, name: '부전승', isBye: true },
+                            score1: winners[i + 1] ? null : 1,
+                            score2: winners[i + 1] ? null : 0,
                             id: matches.length + nextMatches.length,
                             round: config.tournamentStage
                         });
@@ -379,6 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         matches.forEach(m => {
+            if (m.team1.id === -1 || m.team2.id === -1) return; // Ignore Bye matches in standings
             if (m.score1 !== null && m.score2 !== null) {
                 m.team1.played++; m.team2.played++;
                 m.team1.sf += m.score1; m.team1.sa += m.score2;
@@ -398,10 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         teams.forEach(t => t.gd = t.sf - t.sa);
-
-        const sortedTeams = [...teams].sort((a, b) =>
-            b.points - a.points || b.gd - a.gd || b.sf - a.sf
-        );
+        const sortedTeams = [...teams].sort((a, b) => b.points - a.points || b.gd - a.gd || b.sf - a.sf);
 
         standingsBody.innerHTML = '';
         sortedTeams.forEach((t, i) => {
